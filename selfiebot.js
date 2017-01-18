@@ -482,63 +482,63 @@ me.on("message", message => {
         	}).join("");
         	message.edit(newcontent);
         }
-				if (/^\/dstatus$/i.test(input)) {
-					request("https://status.discordapp.com/", (err, resp, body)=>{
-						if (!err && resp.statusCode === 200) {
-							let $ = cheerio.load(body);
-							let embed = new Discord.RichEmbed();
-							embed.setAuthor("Discord Status", "http://is2.mzstatic.com/image/thumb/Purple111/v4/09/9a/70/099a7006-64c4-a170-de06-42d859a2af9d/source/175x175bb.jpg", "https://status.discordapp.com");
-							if ($(".page-status.status-none").length > 0) {
-									embed.setColor(0x56A270)
-									.setTitle("All systems operational")
-									.setDescription("👍🏼");
-								message.edit("", {embed});
-							} else {
-								//console.log("1+1");
-								let incident = $(".unresolved-incident");
-								let classes = incident.attr("class").split(" ");
-								let _$ = cheerio.load(incident.html());
-								let title = cheerio.load(_$(".incident-title").html());
-								title = title(".actual-title");
-								let description = cheerio.load(_$(".updates").html());
-								description = description(".update").html().replace(/<strong>([^]+)<\/strong>/g, "**$1**").replace(/<small>[^]+<\/small>/g, "").replace(/<br(?:\s?\/)?>/g, "\n").replace(/"/g, "");
-								//console.log(String(2+2)+`\n${description}`);
-								//console.log(description);
-								let decode = require("html-entities").AllHtmlEntities;
-								decode = new decode().decode;
-								//console.log(classes);
-								description = cut(description);
-								embed.setTitle(title.text())
-								.setDescription(decode(description));
-								let color;
-								//console.log(classes[1]);
-								switch(classes[1]){
-									case "impact-none":
-										color=0x333333;
-										break;
-									case "impact-critical":
-										color=0xf04747;
-										break;
-									case "impact-major":
-										color=0xf26522;
-										break;
-									case "impact-minor":
-										color=0xfaa61a;
-										break;
-									case "impact-maintenance":
-										color=0x3498DB;
-										break;
-								}
-								//console.log(color);
-								if (color) embed.setColor(color);
-								message.edit("", {embed});
-							}
-						} else {
-							console.error("Error at requesting discord status: "+err);
-							message.edit("An error occured at requesting discord status!").then(()=>message.delete(3000));
-						}
-					});
+	if (/^\/dstatus$/i.test(input)) {
+		request("https://status.discordapp.com/", (err, resp, body)=>{
+			if (!err && resp.statusCode === 200) {
+				let $ = cheerio.load(body);
+				let embed = new Discord.RichEmbed();
+				embed.setAuthor("Discord Status", "http://is2.mzstatic.com/image/thumb/Purple111/v4/09/9a/70/099a7006-64c4-a170-de06-42d859a2af9d/source/175x175bb.jpg", "https://status.discordapp.com");
+				if ($(".page-status.status-none").length > 0) {
+						embed.setColor(0x56A270)
+						.setTitle("All systems operational")
+						.setDescription("👍🏼");
+					message.edit("", {embed});
+				} else {
+					//console.log("1+1");
+					let incident = $(".unresolved-incident");
+					let classes = incident.attr("class").split(" ");
+					let _$ = cheerio.load(incident.html());
+					let title = cheerio.load(_$(".incident-title").html());
+					title = title(".actual-title");
+					let description = cheerio.load(_$(".updates").html());
+					description = description(".update").html().replace(/<strong>([^]+)<\/strong>/g, "**$1**").replace(/<small>[^]+<\/small>/g, "").replace(/<br(?:\s?\/)?>/g, "\n").replace(/"/g, "");
+					//console.log(String(2+2)+`\n${description}`);
+					//console.log(description);
+					let decode = require("html-entities").AllHtmlEntities;
+					decode = new decode().decode;
+					//console.log(classes);
+					description = cut(description);
+					embed.setTitle(title.text())
+					.setDescription(decode(description));
+					let color;
+					//console.log(classes[1]);
+					switch(classes[1]){
+						case "impact-none":
+							color=0x333333;
+							break;
+						case "impact-critical":
+							color=0xf04747;
+							break;
+						case "impact-major":
+							color=0xf26522;
+							break;
+						case "impact-minor":
+							color=0xfaa61a;
+							break;
+						case "impact-maintenance":
+							color=0x3498DB;
+							break;
+					}
+					//console.log(color);
+					if (color) embed.setColor(color);
+					message.edit("", {embed});
 				}
+			} else {
+				console.error("Error at requesting discord status: "+err);
+				message.edit("An error occured at requesting discord status!").then(()=>message.delete(3000));
+			}
+		});
+	}
 	}
 });
 me.on("disconnect", ()=>process.exit(1));
