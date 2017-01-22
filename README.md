@@ -19,7 +19,7 @@ Next, scroll down to the very bottom of the file.
 
 ![Bottom (last) line](http://i.imgur.com/YOB5zKb.png)
 
-Replace `"insert token"` with your token, example: `"MHsodfsjofdsf.sdfosdfjos.fGODfogsfOGfg"`. To grab your token, first go in the Discord App (or the web version, but make sure youe in chrome) and press:
+Replace `"insert token"` with your token, example: `"MHsodfsjofdsf.sdfosdfjos.fGODfogsfOGfg"`. To grab your token, first go in the Discord App (or the web version, but make sure you're in chrome) and press:
 * Ctrl + Shift + I in case you are in Windows, or
 * If Mac, press Command + Option + I.
 
@@ -36,7 +36,7 @@ Assuming the token is `a.b.c.d.e.f`, the line would look like this:
 me.login("a.b.c.d.e.f");
 ```
 
-Done! Now to start your bot, write this in Terminal/CMD:
+Done! Now to start your bot, write this in Terminal/CMD **(DO NOT PRESS ENTER)**:
 ```
 node --harmony
 ```
@@ -46,5 +46,4 @@ Doing that step will add the bot file's path to your terminal. Assuming the file
 ```
 node --harmony /Users/GuyCool/Documents/discordcoolselfbot/selfiebot.js 
 ```
-
-Done! Your selfbot has started on your account, if all steps have been followed correctly. ;)
+Now press enter. Done! Your selfbot has started on your account, if all steps have been followed correctly. ;)
