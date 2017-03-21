@@ -1,7 +1,7 @@
 # discordcoolselfbot
 Some cool selfbot made for reasons yet unknown by humanity.
 
-##Installation
+## Installation
 
 (Make sure you have at least Node 7 installed.)
 
