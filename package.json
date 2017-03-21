@@ -1,15 +1,17 @@
 {
   "name": "discordcoolselfbot",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "A magical selfbot to suit your needs.",
   "main": "./selfiebot.js",
   "dependencies": {
+    "cheerio": "^0.22.0",
     "discord.js": "^11.0.0",
     "helpful-prototypes": "PgBiel/helpful-prototypes",
-    "request": "*",
+    "html-entities": "*",
     "js-beautify": "*",
-    "cheerio": "*",
-    "html-entities": "*"
+    "moment": "^2.18.0",
+    "request": "*",
+    "zws": "^0.1.0"
   },
   "engines": {
     "node": ">=7.0.0"

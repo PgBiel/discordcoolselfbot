@@ -6,8 +6,193 @@ const beautify = jsbeautify.js_beautify;
 const cheerio = require("cheerio");
 proto.load();
 const request = require("request");
+const moment = require("moment");
+const zws = require("zws");
 let c = 0;
 let coolarr = [];
+const range = (l,r) => {
+  if (l > r) [l, r] = [r, l];
+  const arr = new Array(r - l).fill().map((_,k) => k + l);
+  if (!arr.includes(r)) arr.push(r);
+  return arr;
+};
+const rtokenobj = {
+  rndID(){
+    return ((Date.now()-1420070400000) * 4194304).toFixed();
+  },
+
+  btoa(str){
+    return Buffer(str).toString('base64');
+  },
+  
+  atob(str){
+    return Buffer.from(str.toString(),'base64').toString();
+  },
+
+  rtoken(amnt){
+    var final = [];
+    var current = '';
+    var amount = amnt || 1;
+    var a = ['a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z'];
+    var b = ['_',"-"];
+    for(let j = 0; j < amount; j++){
+      current+= rtokenobj.btoa(rtokenobj.rndID())+"."+"C";
+      for(let i = 0; i < 5; i++){
+        if(i == 0){
+          current += Math.round(Math.random()*6);
+        }
+        else{
+          current += (Math.random()>0.4) ? a[Math.round(Math.random()*25)].toUpperCase():(Math.random()>0.9) ? b[Math.round(Math.random())]:a[Math.round(Math.random()*25)];
+        }
+      }
+      current += '.';
+      for(let i = 0; i < 27; i++){
+        if(Math.random() > 0.4){
+          current += a[Math.round(Math.random()*25)].toUpperCase();
+        }
+        else{
+          if(Math.random() > 0.3){
+            current += a[Math.round(Math.random()*25)];
+          }
+          else{
+            if(Math.random() > 0.5){
+              current += b[Math.round(Math.random())];
+            }
+            else{
+              current += Math.round(Math.random()*9);
+            }
+          }
+        }
+      }
+      final.push(current);
+      current = '';
+    }
+    return final;
+  }
+};
+const rtoken = rtokenobj.rtoken;
+function toBin(string) {
+  if (typeof string !== "string") return string;
+  const PADDING     = "00000000";
+  const resultArray = [];
+
+  for (let i in string) {
+    const compact = string.charCodeAt(i).toString(2);
+    const padded  = PADDING.substring(0, PADDING.length - compact.length) + compact;
+
+    resultArray.push(padded);
+  }
+  return resultArray.join(" ");
+}
+function lastDigits(amount, thing) {
+  if (thing.toString().length < 2) return thing.toString();
+  return thing.toString().match(/[^]*?([^][^])$/)[1];
+}
+const calcWeekDay = function(day, month, year) {
+  if (isNaN(day) || isNaN(month) || isNaN(year)) return;
+  if (/\.|e|^0$|-/.test(day.toString()) || /\.|e|^0$|-/.test(month.toString()) || /\.|e|-/.test(year.toString())) return;
+  return moment(`${year}-${month.toString().length < 2 ? "0" + month : month}-${day.toString().length < 2 ? "0" + day : day}`).day() + 1;
+};
+const calendar = function(month, year) {
+  if (isNaN(year)) return "Invalid year!";
+  if (Number(year) < 0) return "Invalid year";
+  if (!["january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november", "december", 
+    "jan", "feb", "mar", "apr", "jun", "jul", "aug", "sep", "oct", "nov", "dec", 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12,
+    "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"].testprop(month)) return "Invalid month!";
+  if (["0", 0].testprop(month)) month = 1;
+  const map = {
+    january: 1,
+    february: 2,
+    march: 3,
+    april: 4,
+    may: 5,
+    june: 6,
+    july: 7,
+    august: 8,
+    september: 9,
+    october: 10,
+    november: 11,
+    december: 12
+  };
+  const fullMap = {
+    1: "january",
+    2: "february",
+    3: "march",
+    4: "april",
+    5: "may",
+    6: "june",
+    7: "july",
+    8: "august",
+    9: "september",
+    10: "october",
+    11: "november",
+    12: "december"
+  };
+  const wmap = {
+    sunday: 1,
+    monday: 2,
+    tuesday: 3,
+    wednesday: 4,
+    thursday: 5,
+    friday: 6,
+    saturday: 7
+  };
+  Object.keys(map).map(m=>{
+    map[m.substring(0, 3)] = map[m];
+    map[map[m]] = map[m];
+  });
+  Object.keys(wmap).map(m=>{
+    wmap[m.substring(0, 3)] = map[m];
+  });
+  month = map[typeof month === "string" ? month.toLowerCase() : month];
+  const normalMonths = {
+    31: [1, 3, 5, 7, 8, 10, 12],
+    30: [4, 6, 9, 11]
+  };
+  console.log(month);
+  const capitalMonth = fullMap[month].charAt(0).toUpperCase() + (fullMap[month].replace(/^[^]/, ""));
+  let stringy = `${capitalMonth} ${year}
+
+Sun Mon Tue Wed Thu Fri Sat
+`;
+  const doStuffs = function(months) {
+    range(1, months).map(d=>{
+      const ds = d.toString();
+      const dspad = `${ds[1] ? (ds[0] || " ") : " "}${ds[1] || ds[0] || " "} `;
+      const colPad = " ".repeat(3);
+      const week = calcWeekDay(d, month, year);
+      if (d === 1) {
+        console.log(`calcWeekDay(${d}, ${month}, ${year}) => ${week}`);
+        switch (week) {
+          case 1:
+            stringy += `${dspad}|`;
+            break;
+          case 2:
+            stringy += `${colPad}|${dspad}|`;
+            break;
+          default:
+            stringy += `${(colPad+"|").repeat(week - 1)}${dspad}${week === 7 ? "" : "|"}`;
+        }
+      } else if (d === months) {
+        stringy += `${dspad}${week === 7 ? "" : `|${(colPad + "|").repeat(7 - week - 1)}`}`;
+      } else {
+        if (week === 7) {
+          stringy += `${dspad}\n`;
+        } else {
+          stringy += `${dspad}|`;
+        }
+      }
+    });
+  };
+  if (normalMonths[31].includes(month)) {
+    doStuffs(31);
+  } else if (normalMonths[30].includes(month)) {
+    doStuffs(30);
+  } else {
+    doStuffs(year % 4 === 0 ? 29 : 28);
+  }
+  return stringy;
+};
 let capitalize = function(str) {
   if (typeof str != "string") return str;
   if (str.length < 1) return str;
@@ -46,6 +231,12 @@ let infarray = function stuff(amount, content, array = [], isoriginal = true) {
   }
   if (isoriginal) return newarr;
 };
+let randomize = function(min, max) {
+  if (min > max) [min, max] = [max, min];
+  [min, max] = [Number(min), Number(max)];
+  if (isNaN(min) || isNaN(max)) return null;
+  return Math.floor(Math.random() * (max - min + 1) ) + min;
+};
 let splitstring = function ss(str, splitat) {
   if (typeof str !== "string") return str;
   if (isNaN(splitat)) return str;
@@ -63,6 +254,20 @@ let pairarray = (arr, splitat = 2) => {
     }
   });
   return newarr;
+};
+let shuffle = function(array) {
+  let currentIndex = array.length, temporaryValue, randomIndex;
+
+  // While there remain elements to shuffle...
+  while (0 !== currentIndex) {
+    randomIndex = Math.floor(Math.random() * currentIndex);
+    currentIndex -= 1;
+    temporaryValue = array[currentIndex];
+    array[currentIndex] = array[randomIndex];
+    array[randomIndex] = temporaryValue;
+  }
+
+  return array;
 };
 let desplitstring = function ss(strarr) {
   if (!(strarr instanceof Array)) return strarr;
@@ -124,18 +329,6 @@ let binarything = function(hexthing) {
 let converthex = function(hex) {
   return parseInt(hex, 16); };
 let infspec = a => require("util").inspect(a, { depth: Infinity });
-const cmdss = require("./cmds.js");
-let coolstuff = () => {
-  Object.defineProperty(Discord.Channel.prototype, "sender", {
-    get: function() {
-      //console.log(this);
-      return new cmdss.Send(this, me);
-    }
-  });
-  Discord.Channel.prototype.sendr = function(content, options = {}) {
-    return this.sender.send(content, options);
-  };
-};
 //mem usage: (process.memoryUsage().heapUsed / 1024 / 1024).toFixed(2)
 const fs = require("fs");
 process.chdir("Insert/Dir/Here.js");
@@ -581,6 +774,151 @@ me.on("message", message => {
       let logg = input.match(/^\/logg\s{1,4}([^]+)$/i)[1];
       message.delete();
       eval(`console.log(${logg})`);
+    }
+    if (/^\/scramble\s{1,4}[^]+$/i.test(input)) {
+      let scramble = input.match(/^\/scramble\s{1,4}([^]+)$/i)[1];
+      let letters = scramble.split("");
+      let lettersonly = [];
+      let posonly = [];
+      letters.map((l, i)=>{
+        if (/[a-z]/i.test(l)) {
+          lettersonly.push(l);
+          posonly.push(i);
+        }
+      });
+      if (lettersonly.length <= 0) return message.edit(scramble);
+      let newletters = shuffle(lettersonly);
+      let newcontent = [];
+      letters.map((l, i)=>{
+        if (/[a-z]/i.test(l)) {
+          newcontent.push(lettersonly[posonly.indexOf(i)]);
+        } else {
+          newcontent.push(l);
+        }
+      });
+      message.edit(newcontent.join(""));
+    }
+    if (/^\/push\s{1,4}[^]+$/i.test(input)) {
+      console.log("Initiating push");
+      let thing = input.match(/^\/push\s{1,4}([^]+)$/i)[1];
+      let originalarr = thing.split``;
+      let newarr = thing.split``;
+      let stuffarr = [];
+      do{
+        stuffarr.push(newarr.pullfow());
+      } while (arrEqual(newarr, originalarr) !== true);
+      let content = "";
+      stuffarr.map(a=>content += content == "" ? a.join`` : `\n${a.join``}`);
+      message.edit(`${thing}\n` + content);
+      console.log("Push successful");
+    }
+    if (/^\/bin\s{1,4}[^]+$/i.test(input)) {
+      const value = input.match(/^\/bin\s{1,4}([^]+)$/i)[1];
+      message.edit(toBin(value));
+    }
+    if (/^\/pur(?:\s{1,4}\d+)?$/i.test(input)) {
+      const value = (input.match(/^\/pur\s{1,4}(\d+)$/i)||[0, 30])[1];
+      message.delete();
+      chanel.fetchMessages(isNaN(Number(value))?{limit: 30, before: message.id}:{limit: Number(value), before: message.id}).then(msgs=>{
+        if (msgs.size < 1) return;
+        let deleteThing = new Discord.Collection();
+        msgs.array().map(m=>{
+          if (m.author.id === me.user.id) deleteThing.set(m.id, m);
+        });
+        if (deleteThing.size < 1) return;
+        deleteThing.deleteAll();
+      });
+    }
+    if (/^\/r\s{1,4}[^]+$/i.test(input)) {
+      const replaceer = input.match(/^\/r\s{1,4}([^]+)$/i)[1];
+      if (!(/\[\[[^\]]+\]\]/.test(replaceer))) return message.edit(replaceer);
+      let newstring = replaceer;
+      let shouldreturn = false;
+      while (/\[\[[^\]]+\]\]/.test(newstring)) {
+        let tag = newstring.match(/\[\[([^\]]+)\]\]/)[1];
+        if (!(tag.toLowerCase() in tags)) {
+          message.edit(["Tag not found!", message.delete(4000)][0]);
+          shouldreturn = true;
+          break;
+        }
+        newstring = newstring.replace(/\[\[[^\]]+\]\]/, tags[tag.toLowerCase()].replace(/\[\[([^\]]+)\]\]/g, "[\\[$1]\\]"));
+      }
+      if (!shouldreturn) message.edit(newstring);
+    }
+    if (/^\/react\s{1,4}[^]+$/i.test(input)) {
+      const text = input.match(/^\/react\s{1,4}([^]+)$/i)[1];
+      const map = {};
+      const letters = {};
+      "🇦 🇧 🇨 🇩 🇪 🇫 🇬 🇭 🇮 🇯 🇰 🇱 🇲 🇳 🇴 🇵 🇶 🇷 🇸 🇹 🇺 🇻 🇼 🇽 🇾 🇿".split(" ").map((l, i)=>{
+        letters["ABCDEFGHIJKLMNOPQRSTUVWXYZ"[i]] = l;
+      });
+      "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split``.map(l=>{
+        map[l.toLowerCase()] = {
+          arr: [letters[l]],
+          latest: 0
+        };
+      });
+      const specials = {
+        a: ["🅰"],
+        b: ["🅱"],
+        i: ["ℹ"],
+        o: ["🅾", "⭕", "0⃣"],
+        p: ["🅿"],
+        x: ["❌", "✖"]
+      };
+      for (let letter in specials){
+        specials[letter].map(c=>{
+          map[letter].arr.push(c);
+        });
+      }
+      (async function(){
+        await message.delete();
+        let massage = await chanel.fetchMessages({limit: 1});
+        massage = massage.first();
+        let textusing = text.length > 20 ? text.substring(0, 19) : text;
+        for (let l of textusing) {
+          console.log("LETTAR: "+l);
+          if (massage.reactions.size >= 20) return;
+          if (l.toLowerCase() in map) {
+            const letterz = map[l.toLowerCase()].arr;
+            let latest = map[l.toLowerCase()].latest;
+            console.log(`DEBUG: ${letterz} and ${latest}\nDEBUG 2: ${letterz[latest]}`);
+            const doCheck = function(){
+              let isIn = false;
+              massage.reactions.map(r=>{
+                if (r.emoji.toString() == letterz[latest]) isIn = true;
+              });
+              return isIn;
+            };
+            if (!doCheck()) {
+              await massage.react(letterz[latest]);
+            } else {
+              ++latest;
+              if (!doCheck()) {
+                await massage.react(letterz[latest]);
+              } else {
+                ++latest;
+                if (!doCheck()) {
+                  await massage.react(letterz[latest]);
+                } else {
+                  ++latest;
+                  if (!doCheck()) await massage.react(letterz[latest]);
+                }
+              }
+            }
+          }
+        }
+      })();
+    }
+    if (/^\/rtoken\s*$/i.test(input)) {
+      message.edit(rtoken(1)[0]);
+    }
+    if (/^\/calendar\s{1,4}[^]+$/i.test(input)) {
+      if (!/^\/calendar\s{1,4}[^]+?,?\s{1,4}[^]+$/i.test(input)) return message.delete();
+      const [ month, year ] = [input.match(/^\/calendar\s{1,4}([^]+?),?\s{1,4}[^]+$/i)[1], input.match(/^\/calendar\s{1,4}[^]+?,?\s{1,4}([^]+)$/i)[1]];
+      const result = calendar(month, year);
+      if (!result.search(year)) return [console.error(`Calendar thing: ${result}`), message.delete()];
+      message.edit(`\`\`\`js\n${result}\n\`\`\``);
     }
   }
 });
