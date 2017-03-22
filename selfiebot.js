@@ -352,7 +352,7 @@ me.on("message", message => {
   var chanel = message.channel;
   var themsg = message.content;
 
-  if (message.author.id === "180813971853410305") {
+  if (message.author.id === me.user.id) {
     if (/^\/hidden\s{1,4}/.test(input)) {
       message.delete();
     }
