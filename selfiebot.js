@@ -193,6 +193,18 @@ Sun Mon Tue Wed Thu Fri Sat
   }
   return stringy;
 };
+function arrEqual(arr1, arr2, strict=true) {
+  if(arr1.length !== arr2.length)
+    return false;
+  for (let elem in arr1) {
+    if (strict) {
+      if (arr1[elem] !== arr2[elem]) return false;
+    } else {
+      if (arr1[elem] != arr2[elem]) return false;
+    }
+  }
+  return true;
+}
 let capitalize = function(str) {
   if (typeof str != "string") return str;
   if (str.length < 1) return str;
