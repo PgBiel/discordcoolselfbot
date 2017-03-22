@@ -9,11 +9,13 @@ Some cool selfbot made for reasons yet unknown by humanity.
 2. Run `npm install PgBiel/discordcoolselfbot`.
 3. After done, go to your user folder, open the folder named `node_modules`, and copy the folder named `discordcoolselfbot` to anywhere you like.
 4. Go inside that folder and open the file named `selfiebot.js`.
-5. Once opened, look for this line:
+5. Once opened, look for this line (334 in latest release): 
 
-![Line 141](http://i.imgur.com/At366sL.png)
+```js
+process.chdir("Insert/Dir/Here");
+```
 
-Replace `"insert/dir/here.js"` with the directory to the bot file. Example: `"/Users/GuyCool/Documents/discordcoolselfbot/selfiebot.js"`.
+Replace `"insert/dir/here"` with the directory to the bot folder. Example: `"/Users/GuyCool/Documents/discordcoolselfbot"`.
 
 Next, scroll down to the very bottom of the file.
 

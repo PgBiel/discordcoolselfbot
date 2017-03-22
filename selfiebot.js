@@ -331,7 +331,7 @@ let converthex = function(hex) {
 let infspec = a => require("util").inspect(a, { depth: Infinity });
 //mem usage: (process.memoryUsage().heapUsed / 1024 / 1024).toFixed(2)
 const fs = require("fs");
-process.chdir("Insert/Dir/Here.js");
+process.chdir("Insert/Dir/Here");
 var me = new Discord.Client({
   bot: false,
   disabledEvents: ["TYPING_START", "TYPING_STOP"]
