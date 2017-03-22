@@ -362,15 +362,33 @@ me.on("message", message => {
     if (/^\/eval\s{1,4}/i.test(input)) {
       var functionToEval = message.content.match(/^\/eval\s{1,4}([^]+)$/i)[1];
       let evald;
+      const printqueue = [];
+      let _print = t=>[printqueue.push(t), t][1];
+      const print = t=>_print(t);
+      const abruptqueue = [];
+      let _abrupt = t=>[abruptqueue[0] = t, t][1];
+      const abrupt = t=>_abrupt(t);
+      const inpprintqueue = [];
+      const inpabruptqueue = [];
+      let _inpprint = t=>[inpprintqueue.push(t), t][1];
+      const inpprint = t=>_inpprint(t);
+      let _inpabrupt = t=>[inpabruptqueue[0] = t, t][1];
+      const inpabrupt = t=>_inpabrupt(t);
       try {
         /*jshint ignore:start*/
-        evald = eval(functionToEval);
+        evald = eval(functionToEval /*.replace(/\r?\n|\r/g, ' ')*/ );
         /*jshint ignore:end*/
+        if (abruptqueue[0]) evald = abruptqueue[0];
         if (typeof evald != 'string') {
           evald = require('util').inspect(evald, { depth: 0 });
         }
+        if (printqueue.length > 0) printqueue.map(t=>evald += t.toString());
+        if (inpabruptqueue[0]) functionToEval = inpabruptqueue[0];
+        if (inpprintqueue.length > 0) inpprintqueue.map(t=>functionToEval += t.toString());
         let replacea = { token: new RegExp(`${me.token}`, "ig"), email: new RegExp(`${me.user.email}`, "ig") };
         evald = evald.replace(replacea.token, '[le token]').replace(replacea.email, '[le email]');
+        if (evald.length > 1902) evald = "<Something very long>";
+        if (functionToEval.length > 1902) functionToEval = "<Something very long>";
         message.edit("", {
           embed: {
             title: "~---==Eval==---~",
@@ -384,8 +402,62 @@ me.on("message", message => {
             }]
           }
         });
+        const savedEmbed = {
+          title: "~---==Eval==---~",
+          color: 0xe1ee17,
+          fields: [{
+            name: "Input",
+            value: `\`\`\`js\n${functionToEval}\`\`\``
+          }, {
+            name: "Output",
+            value: `\`\`\`js\n${evald}\`\`\``
+          }]
+        };
+        _print = t=>{
+          evald += t.toString();
+          if (evald.length > 1902) evald = "<Something very long>";
+          savedEmbed.fields.pop();
+          savedEmbed.fields.push({
+            name: "Output",
+            value: `\`\`\`js\n${evald}\`\`\``
+          });
+          message.edit("", {embed: savedEmbed});
+        };
+        _abrupt = t=>{
+          evald = t.toString();
+          if (evald.length > 1902) evald = "<Something very long>";
+          savedEmbed.fields.pop();
+          savedEmbed.fields.push({
+            name: "Output",
+            value: `\`\`\`js\n${evald}\`\`\``
+          });
+          message.edit("", {embed: savedEmbed});
+        };
+        _inpprint = t=>{
+          functionToEval += t.toString();
+          if (functionToEval.length > 1902) functionToEval = "<Something very long>";
+          savedEmbed.fields[0] = {
+            name: "Input",
+            value: `\`\`\`js\n${functionToEval}\`\`\``
+          };
+          message.edit("", {embed: savedEmbed});
+        };
+        _inpabrupt = t=>{
+          functionToEval = t.toString();
+          if (functionToEval.length > 1902) functionToEval = "<Something very long>";
+          savedEmbed.fields[0] = {
+            name: "Input",
+            value: `\`\`\`js\n${functionToEval}\`\`\``
+          };
+          message.edit("", {embed: savedEmbed});
+        };
       } catch (err) {
         let replacea = { token: new RegExp(`${me.token}`, "ig"), email: new RegExp(`${me.user.email}`, "ig") };
+        evald = err.message.replace(replacea.token, "[le token]").replace(replacea.email, "[le email]");
+        if (abruptqueue[0]) evald = abruptqueue[0];
+        if (printqueue.length > 0) printqueue.map(t=>evald += t.toString());
+        if (inpabruptqueue[0]) functionToEval = inpabruptqueue[0];
+        if (inpprintqueue.length > 0) inpprintqueue.map(t=>functionToEval += t.toString());
         message.edit("", {
           embed: {
             title: "~---==Eval==---~",
@@ -400,20 +472,83 @@ me.on("message", message => {
           }
         });
         console.log(err.message);
+        const savedEmbed = {
+          title: "~---==Eval==---~",
+          color: 0xe1ee17,
+          fields: [{
+            name: "Input",
+            value: `\`\`\`js\n${functionToEval}\`\`\``
+          }, {
+            name: "Output",
+            value: `\`\`\`js\n${evald}\`\`\``
+          }]
+        };
+        _print = t=>{
+          evald += t.toString();
+          savedEmbed.fields.pop();
+          savedEmbed.fields.push({
+            name: "Output",
+            value: `\`\`\`js\n${evald}\`\`\``
+          });
+          message.edit("", {embed: savedEmbed});
+        };
+        _abrupt = t=>{
+          evald = t.toString();
+          savedEmbed.fields.pop();
+          savedEmbed.fields.push({
+            name: "Output",
+            value: `\`\`\`js\n${evald}\`\`\``
+          });
+          message.edit("", {embed: savedEmbed});
+        };
+        _inpprint = t=>{
+          functionToEval += t.toString();
+          savedEmbed.fields[0] = {
+            name: "Input",
+            value: `\`\`\`js\n${functionToEval}\`\`\``
+          };
+          message.edit("", {embed: savedEmbed});
+        };
+        _inpabrupt = t=>{
+          functionToEval = t.toString();
+          savedEmbed.fields[0] = {
+            name: "Input",
+            value: `\`\`\`js\n${functionToEval}\`\`\``
+          };
+          message.edit("", {embed: savedEmbed});
+        };
       }
     }
     if (/^\/deleval\s{1,4}/i.test(input)) {
       let functionToEval = message.content.match(/^\/deleval\s{1,4}([^]+)$/i)[1];
       let evald;
+            const printqueue = [];
+      let _print = t=>[printqueue.push(t), t][1];
+      const print = t=>_print(t);
+      const abruptqueue = [];
+      let _abrupt = t=>[abruptqueue[0] = t, t][1];
+      const abrupt = t=>_abrupt(t);
+      const inpprintqueue = [];
+      const inpabruptqueue = [];
+      let _inpprint = t=>[inpprintqueue.push(t), t][1];
+      const inpprint = t=>_inpprint(t);
+      let _inpabrupt = t=>[inpabruptqueue[0] = t, t][1];
+      const inpabrupt = t=>_inpabrupt(t);
       try {
         /*jshint ignore:start*/
         evald = eval(functionToEval /*.replace(/\r?\n|\r/g, ' ')*/ );
         /*jshint ignore:end*/
+        if (abruptqueue[0]) evald = abruptqueue[0];
         if (typeof evald != 'string') {
           evald = require('util').inspect(evald, { depth: 0 });
         }
+        if (printqueue.length > 0) printqueue.map(t=>evald += t.toString());
+        if (inpabruptqueue[0]) functionToEval = inpabruptqueue[0];
+        if (inpprintqueue.length > 0) inpprintqueue.map(t=>functionToEval += t.toString());
         let replacea = { token: new RegExp(`${me.token}`, "ig"), email: new RegExp(`${me.user.email}`, "ig") };
         evald = evald.replace(replacea.token, '[le token]').replace(replacea.email, '[le email]');
+        if (evald.length > 1902) evald = "<Something very long>";
+        if (functionToEval.length > 1902) functionToEval = "<Something very long>";
         message.edit("", {
           embed: {
             title: "~---==Eval==---~",
@@ -427,6 +562,55 @@ me.on("message", message => {
             }]
           }
         });
+        const savedEmbed = {
+          title: "~---==Eval==---~",
+          color: 0xe1ee17,
+          fields: [{
+            name: "Input",
+            value: `\`\`\`js\n${functionToEval}\`\`\``
+          }, {
+            name: "Output",
+            value: `\`\`\`js\n${evald}\`\`\``
+          }]
+        };
+        _print = t=>{
+          evald += t.toString();
+          if (evald.length > 1902) evald = "<Something very long>";
+          savedEmbed.fields.pop();
+          savedEmbed.fields.push({
+            name: "Output",
+            value: `\`\`\`js\n${evald}\`\`\``
+          });
+          message.edit("", {embed: savedEmbed});
+        };
+        _abrupt = t=>{
+          evald = t.toString();
+          if (evald.length > 1902) evald = "<Something very long>";
+          savedEmbed.fields.pop();
+          savedEmbed.fields.push({
+            name: "Output",
+            value: `\`\`\`js\n${evald}\`\`\``
+          });
+          message.edit("", {embed: savedEmbed});
+        };
+        _inpprint = t=>{
+          functionToEval += t.toString();
+          if (functionToEval.length > 1902) functionToEval = "<Something very long>";
+          savedEmbed.fields[0] = {
+            name: "Input",
+            value: `\`\`\`js\n${functionToEval}\`\`\``
+          };
+          message.edit("", {embed: savedEmbed});
+        };
+        _inpabrupt = t=>{
+          functionToEval = t.toString();
+          if (functionToEval.length > 1902) functionToEval = "<Something very long>";
+          savedEmbed.fields[0] = {
+            name: "Input",
+            value: `\`\`\`js\n${functionToEval}\`\`\``
+          };
+          message.edit("", {embed: savedEmbed});
+        };
       } catch (err) {
         message.delete();
         console.error(`${err instanceof Error?err.name:"Error"} (deleval) -> ${err instanceof Error?err.toString().replace(new RegExp(`^${err.name}:\\s?`), ""):err}`);
